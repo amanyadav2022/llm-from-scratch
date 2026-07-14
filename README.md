@@ -19,7 +19,7 @@ Every phase is a folder with its own `README.md` containing:
 | 1 | [AI/ML/DL/LLM Foundations](phases/01-foundations/) | Explain AI ⊃ ML ⊃ DL ⊃ LLM, training vs inference | 🚧 |
 | 2 | [Math & Tensor Foundations](phases/02-math-tensor-foundations/) | Predict tensor shapes, write softmax from scratch | 🚧 |
 | 3 | [Why Transformers Were Invented](phases/03-why-transformers/) | Explain what RNNs got wrong, and the transformer trade-off | 🚧 |
-| 4 | [Transformers Deep Dive](phases/04-transformers-deep-dive/) | Trace tokenization → embeddings → attention → MLP | 🚧 |
+| 4 | [Transformers Deep Dive](phases/04-transformers-deep-dive/) | Trace tokenization → embeddings → attention → MLP | ✅ |
 | 5 | [Build Attention Yourself](phases/05-build-attention-yourself/) | Implement multi-head attention in raw PyTorch | 🚧 |
 | 6 | [GPT & LLM Architecture](phases/06-gpt-llm-architecture/) | Assemble a full decoder-only GPT | 🚧 |
 | 7 | [LLM Inference Internals](phases/07-inference-internals/) | Explain KV cache, batching, sampling | 🚧 |
