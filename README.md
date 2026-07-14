@@ -23,7 +23,7 @@ Every phase is a folder with its own `README.md` containing:
 | 5 | [Build Attention Yourself](phases/05-build-attention-yourself/) | Implement multi-head attention in raw PyTorch | ✅ |
 | 6 | [GPT & LLM Architecture](phases/06-gpt-llm-architecture/) | Assemble a full decoder-only GPT | ✅ |
 | 7 | [LLM Inference Internals](phases/07-inference-internals/) | Explain KV cache, batching, sampling | ✅ |
-| 8 | [vLLM Architecture](phases/08-vllm-architecture/) | Describe PagedAttention & continuous batching | 🚧 |
+| 8 | [vLLM Architecture](phases/08-vllm-architecture/) | Describe PagedAttention & continuous batching | ✅ |
 | 9 | [Attention in vLLM (CPU)](phases/09-attention-in-vllm/) | Read vLLM's actual attention kernel | 🚧 |
 | 10 | [Research Papers](phases/10-research-papers/) | Read the foundational papers with guided notes | 🚧 |
 | 11 | [Advanced Topics](phases/11-advanced-topics/) | Navigate MoE, quantization, speculative decoding | 🚧 |
