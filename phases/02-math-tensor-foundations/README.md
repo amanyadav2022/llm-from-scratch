@@ -127,3 +127,7 @@ If any of these are shaky, re-run the code snippets above yourself in a Python s
 - 🎥 [3Blue1Brown — Essence of Linear Algebra (playlist)](https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab)
 - 📄 [PyTorch — Learn the Basics](https://pytorch.org/tutorials/beginner/basics/intro.html)
 - 📄 [PyTorch — Broadcasting Semantics](https://pytorch.org/docs/stable/notes/broadcasting.html)
+
+---
+
+📝 **[Exercise Solutions](exercise-solutions.md)** — check your work on the Step 5 exercises here.
