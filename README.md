@@ -1,5 +1,7 @@
 # 🧠 LLMs From Scratch — A Visual, Step-by-Step Learning Path
 
+> 👋 **New here? Read [START-HERE.md](START-HERE.md) first** — covers setup (no installation needed), what background you need (almost none), and how long this takes.
+
 > From "what is a neuron" to "how does vLLM serve attention on a live server" — one continuous, visual roadmap. No step skipped, no black boxes.
 
 This repo is for people who want to understand **how LLMs actually work internally**: the neural network math, the transformer architecture, and the inference engines (like vLLM) that serve models like GPT and Claude in production.
