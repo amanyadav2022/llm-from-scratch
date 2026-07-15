@@ -1,34 +1,69 @@
 # Worked Example, Part 2: Inference on "a gun was fired" (with a real KV cache)
 
-*Part 1 traced training on one sentence. This traces the OTHER half of the model's life: generating new text from a prompt, using a real, working KV cache — not just the concept from Phase 7, but actual code that builds and reuses one, with real printed output at every step.*
+*Part 1 traced training on one sentence. This traces the OTHER half of the model's life: generating new text from a prompt, using a real, working KV cache, not just the concept from Phase 7, but actual code that builds and reuses one, with real printed output at every step.*
 
-**Copy the full script at the bottom into Colab and run it yourself** — the numbers below are exactly what it prints.
+Copy the full script at the bottom into Colab and run it yourself. The numbers below are exactly what it prints.
 
 ---
 
 ## The setup
 
-Same toy model shape as Part 1 (`D=8`, 2 heads, same 12-word vocabulary). The weights here are freshly random-initialized (not the ones trained in Part 1) — the point of this walkthrough is the **mechanism** of generation and caching, not producing meaningful text from an untrained toy model.
+Same toy model shape as Part 1 (D=8, 2 heads, same 12-word vocabulary). The weights here are freshly random-initialized, not the ones trained in Part 1. The point of this walkthrough is the mechanism of generation and caching, not producing meaningful text from an untrained toy model.
 
-**Prompt:** `"a gun was fired"`
-
----
-
-## Step 1-2 — Tokenize the Prompt (Phase 4, Step 1)Same mechanism as Part 1 — words become integers using the same vocabulary table.
+Prompt: "a gun was fired"
 
 ---
 
-## Step 3 — Prefill: Process the Whole Prompt at Once (Phase 7, Step 2)**This is the real KV cache from Phase 7, Step 1 — actually being built.** Each token's Key and Value vectors get computed once and stored. The cache shape `(4, 2, 4)` means: 4 tokens cached, 2 attention heads, 4 numbers per head (our `head_dim`) — exactly the shape you'd expect from Phase 9, Step 3's shape table, just tiny.
+## Step 1-2: Tokenize the Prompt (Phase 4, Step 1)
+
+```
+Prompt: a gun was fired
+Tokens: ['a', 'gun', 'was', 'fired']
+Token IDs: [0, 6, 7, 8]
+```
+
+Same mechanism as Part 1, words become integers using the same vocabulary table.
 
 ---
 
-## Step 4+ — Decode: One New Token at a Time, Reusing the Cache (Phase 7, Step 1 & 5)**This is the entire point of Phase 7.** Look closely at what happens each step: the cache grows by exactly one token's worth of Key/Value vectors, and — critically — **only the new token's Query, Key, and Value get freshly computed.** Tokens 1 through N-1 are never recomputed; their K and V are simply read back out of the cache, appended to, and reused. This is the "reuse cached K,V (free) + compute K,V for new token only" mental model from Phase 7, Step 1, actually running.
+## Step 3: Prefill, Process the Whole Prompt at Once (Phase 7, Step 2)
+
+```
+processed token 'a'     (position 0) -> cache now holds K,V for 1 token(s)
+processed token 'gun'   (position 1) -> cache now holds K,V for 2 token(s)
+processed token 'was'   (position 2) -> cache now holds K,V for 3 token(s)
+processed token 'fired' (position 3) -> cache now holds K,V for 4 token(s)
+
+After prefill, cache shape: K=(4, 2, 4), V=(4, 2, 4)
+Predicted next token after full prompt: 'a'
+```
+
+This is the real KV cache from Phase 7, Step 1, actually being built. Each token's Key and Value vectors get computed once and stored. The cache shape (4, 2, 4) means 4 tokens cached, 2 attention heads, 4 numbers per head, exactly the shape you'd expect from Phase 9's shape table, just tiny.
 
 ---
 
-## Step 5 — Final Generated SequenceThe full sequence: the original 4-word prompt, plus 4 newly generated tokens, one per decode step.
+## Step 4+: Decode, One New Token at a Time, Reusing the Cache (Phase 7, Step 1 and 5)
 
-> **This output is gibberish, and that's expected and correct.** This model has never been trained (Part 1 showed what one single training step looks like — real models repeat that step billions of times). The point of this walkthrough was never to produce meaningful text; it was to see the KV cache genuinely being built during prefill and genuinely being reused and extended during decode, with real tensors, real shapes, and real step-by-step growth — exactly the mechanism Phase 7 and Phase 8 describe conceptually.
+```
+decode step 1: new token was 'a'   | cache grew from 4 -> 5 tokens | only computed Q,K,V for this ONE token | next predicted token: 'war'
+decode step 2: new token was 'war' | cache grew from 5 -> 6 tokens | only computed Q,K,V for this ONE token | next predicted token: 'a'
+decode step 3: new token was 'a'   | cache grew from 6 -> 7 tokens | only computed Q,K,V for this ONE token | next predicted token: 'the'
+decode step 4: new token was 'the' | cache grew from 7 -> 8 tokens | only computed Q,K,V for this ONE token | next predicted token: 'a'
+```
+
+This is the entire point of Phase 7. Look closely at what happens each step: the cache grows by exactly one token's worth of Key/Value vectors, and only the new token's Query, Key, and Value get freshly computed. Tokens 1 through N-1 are never recomputed, their K and V are simply read back out of the cache, appended to, and reused.
+
+---
+
+## Step 5: Final Generated Sequence
+
+```
+Generated: a gun was fired a war a the a
+```
+
+The full sequence: the original 4-word prompt, plus 4 newly generated tokens, one per decode step.
+
+This output is gibberish, and that's expected and correct. This model has never been trained. The point of this walkthrough was never to produce meaningful text, it was to see the KV cache genuinely being built during prefill and genuinely being reused and extended during decode, with real tensors, real shapes, and real step-by-step growth.
 
 ---
 
@@ -38,12 +73,12 @@ What you just watched run is a tiny, single-request, unoptimized version of exac
 
 | This toy script | vLLM's real version |
 |---|---|
-| One Python list, growing by concatenation each step | PagedAttention: fixed-size memory pages, allocated on demand (Phase 8, Step 2) |
-| One request at a time | Continuous batching: many requests' decode steps combined into one pass (Phase 8, Step 3) |
+| One Python list, growing by concatenation each step | PagedAttention, fixed-size memory pages, allocated on demand (Phase 8, Step 2) |
+| One request at a time | Continuous batching, many requests' decode steps combined into one pass (Phase 8, Step 3) |
 | Cache lives in one contiguous PyTorch tensor | Cache can live in scattered physical memory blocks, tracked by a block table (Phase 8, Step 4) |
 | Plain PyTorch operations | Hand-written CUDA/Triton kernels for speed (Phase 9, Phase 11.6) |
 
-Every row in that table is "the same idea, engineered for scale" — nothing conceptually new, just more careful about memory and throughput.
+Every row in that table is the same idea, engineered for scale, nothing conceptually new, just more careful about memory and throughput.
 
 ---
 
@@ -86,11 +121,6 @@ def embed(token_id, position):
     return tok + pos
 
 def block_forward_new_token(x_new, cache_k, cache_v):
-    """
-    x_new: (1, D) -- embedding for just the newest token
-    cache_k, cache_v: (T_so_far, n_heads, head_dim) or None
-    Returns: block output for the new token, updated cache_k, cache_v
-    """
     x_normed = ln1(x_new)
 
     q = q_proj(x_normed).view(1, n_heads, head_dim)
@@ -117,64 +147,54 @@ def block_forward_new_token(x_new, cache_k, cache_v):
     x = x + ffn(ln2(x))
     return x, cache_k, cache_v, weights
 
-# STEP 1 & 2: TOKENIZE THE PROMPT
 prompt = "a gun was fired"
 prompt_words = prompt.split()
 prompt_ids = [stoi[w] for w in prompt_words]
-print("STEP 1-2 — Tokenize prompt")
-print("Prompt:", prompt)
+print("STEP 1-2 - Tokenize prompt")
 print("Tokens:", prompt_words)
 print("Token IDs:", prompt_ids)
 print()
 
-# STEP 3: PREFILL
-print("STEP 3 — PREFILL (process all prompt tokens, build KV cache)")
+print("STEP 3 - PREFILL")
 cache_k, cache_v = None, None
 generated_ids = list(prompt_ids)
 
 for pos, tid in enumerate(prompt_ids):
     x_new = embed(tid, pos)
     block_out, cache_k, cache_v, weights = block_forward_new_token(x_new, cache_k, cache_v)
-    print(f"  processed token '{itos[tid]}' (position {pos}) "
-          f"-> cache now holds K,V for {cache_k.shape[0]} token(s)")
+    print(f"  processed '{itos[tid]}' -> cache holds {cache_k.shape[0]} token(s)")
 
 logits = output_head(final_norm(block_out))
 next_id = torch.argmax(logits, dim=-1).item()
-print(f"\\nAfter prefill, cache shape: K={tuple(cache_k.shape)}, V={tuple(cache_v.shape)}")
-print(f"Predicted next token after full prompt: '{itos[next_id]}'")
+print("Cache shape:", tuple(cache_k.shape))
+print("Predicted next token:", itos[next_id])
 print()
 
-# STEP 4 onward: DECODE
-print("STEP 4+ — DECODE LOOP (one token at a time, cache reused each step)")
+print("STEP 4+ - DECODE LOOP")
 generated_ids.append(next_id)
 pos = len(prompt_ids)
 
 for step in range(4):
     tid = generated_ids[-1]
     if itos[tid] == "<eos>":
-        print("  <eos> generated -- stopping")
         break
 
     x_new = embed(tid, pos)
-    cache_size_before = cache_k.shape[0]
+    cache_before = cache_k.shape[0]
     block_out, cache_k, cache_v, weights = block_forward_new_token(x_new, cache_k, cache_v)
-    cache_size_after = cache_k.shape[0]
+    cache_after = cache_k.shape[0]
 
     logits = output_head(final_norm(block_out))
     next_id = torch.argmax(logits, dim=-1).item()
 
-    print(f"  decode step {step+1}: new token was '{itos[tid]}' "
-          f"| cache grew from {cache_size_before} -> {cache_size_after} tokens "
-          f"| only computed Q,K,V for this ONE token "
-          f"| next predicted token: '{itos[next_id]}'")
+    print(f"  step {step+1}: token '{itos[tid]}' | cache {cache_before} -> {cache_after} | next: '{itos[next_id]}'")
 
     generated_ids.append(next_id)
     pos += 1
 
 print()
-print("STEP 5 — Final generated sequence")
-final_words = [itos[i] for i in generated_ids]
-print("Generated:", " ".join(final_words))
+print("STEP 5 - Final sequence")
+print("Generated:", " ".join(itos[i] for i in generated_ids))
 ```
 
 ---
@@ -183,9 +203,9 @@ print("Generated:", " ".join(final_words))
 
 1. In prefill, how many tokens' worth of Query/Key/Value get computed? In each decode step, how many?
 2. Why does the cache shape grow by exactly one token per decode step, never more or less?
-3. If this model had been trained (like Part 1's model, after many more repetitions), what would you expect to be different about the generated output — the mechanism, or just the actual words chosen?
+3. If this model had been trained, like Part 1's model, after many more repetitions, what would you expect to be different about the generated output, the mechanism, or just the actual words chosen?
 4. Map each row of the "connecting back to vLLM" table to the phase that introduced it, from memory.
 
 ---
 
-⬅ Back to [Part 1: Training Walkthrough](01-training-walkthrough.md) · ⬅ [Back to main roadmap](../README.md)
+Back to Part 1: Training Walkthrough (01-training-walkthrough.md), back to main roadmap (../README.md)
