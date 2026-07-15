@@ -30,6 +30,10 @@ Every phase is a folder with its own `README.md` containing:
 | 10 | [Research Papers](phases/10-research-papers/) | Read the foundational papers with guided notes | ✅ |
 | 11 | [Advanced Topics](phases/11-advanced-topics/) | Navigate MoE, quantization, speculative decoding | ✅ |
 
+## Worked Example
+
+Want to see everything from Phases 1-9 traced through one real sentence, with real numbers? See **[worked-example/](worked-example/)** — tokenization through training (with real gradients and a real weight update), plus a separate inference walkthrough with an actual working KV cache.
+
 ## How to use this repo
 
 Go in order. Each phase assumes the one before it. Do the checkpoint questions before moving on — if you can't answer them on paper, re-read.
