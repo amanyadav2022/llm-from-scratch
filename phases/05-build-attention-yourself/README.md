@@ -165,3 +165,7 @@ print(out.shape)   # torch.Size([2, 10, 64]) -- same shape your version produces
 - Andrej Karpathy - Let's build GPT from scratch: https://www.youtube.com/watch?v=kCc8FmEb1nY (codes exactly this, line by line)
 - PyTorch - nn.MultiheadAttention docs: https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html
 - PyTorch - scaled_dot_product_attention docs: https://pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html
+
+---
+
+📝 **[Exercise Solutions](exercise-solutions.md)** — check your work on the build-attention-yourself exercises here.
